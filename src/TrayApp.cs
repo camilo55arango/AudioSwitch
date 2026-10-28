@@ -29,6 +29,7 @@ namespace AudioSwitch
 
         AudioDevice output, input;
         bool? outputMuted, inputMuted;
+        int profile;
         bool initialized;
         HotkeyDialog hotkeyDialog;
 
@@ -80,14 +81,24 @@ namespace AudioSwitch
             outputMuted = newOutputMuted;
             inputMuted = newInputMuted;
 
+            int newProfile = CurrentProfile();
+            bool profileChanged = newProfile != profile;
+            profile = newProfile;
+
             if (!initialized || outputChanged || inputChanged || outputMuteChanged || inputMuteChanged)
                 UpdateVisuals();
             if (initialized)
-                Announce(outputChanged, inputChanged, outputMuteChanged, inputMuteChanged);
+                Announce(profileChanged, outputChanged, inputChanged, outputMuteChanged, inputMuteChanged);
         }
 
-        void Announce(bool outputChanged, bool inputChanged, bool outputMuteChanged, bool inputMuteChanged)
+        void Announce(bool profileChanged, bool outputChanged, bool inputChanged, bool outputMuteChanged, bool inputMuteChanged)
         {
+            if (profileChanged && profile != 0 && settings.GetBool("ShowProfileAlerts"))
+            {
+                osd.ShowMessage(Glyphs.Headphones, ProfileName(profile), "Perfil " + profile + " · Micrófono: " + NameOf(input), Ui.Accent);
+                return;
+            }
+
             if (!settings.GetBool("ShowOsd")) return;
 
             if (outputChanged || inputChanged)
@@ -249,6 +260,7 @@ namespace AudioSwitch
             string name = output != null && output.InterfaceName.Length > 0 ? output.InterfaceName : NameOf(output);
             settings.Set("Profile" + n + "Name", name);
             settings.Save();
+            profile = CurrentProfile();
             osd.ShowMessage(Glyphs.Headphones, "Guardado como perfil " + n, name, Ui.Accent);
         }
 
@@ -463,6 +475,7 @@ namespace AudioSwitch
 
             menu.Items.Add(Item("Mostrar widget", widget.Visible, "HotkeyWidget", () => SetWidgetVisible(!widget.Visible)));
             menu.Items.Add(Toggle("Mostrar avisos en pantalla", "ShowOsd"));
+            menu.Items.Add(Toggle("Mostrar alertas de perfiles", "ShowProfileAlerts"));
             menu.Items.Add(Toggle("Cambiar el micrófono junto con la salida", "LinkMicToOutput"));
             menu.Items.Add(Item("Iniciar con Windows", StartupEnabled(), null, () => SetStartup(!StartupEnabled())));
             menu.Items.Add(new ToolStripSeparator());

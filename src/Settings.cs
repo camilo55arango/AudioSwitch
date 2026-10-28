@@ -18,6 +18,7 @@ namespace AudioSwitch
             new[] { "HotkeyWidget", "Ctrl+Alt+W" },
             new[] { "ShowWidget", "true" },
             new[] { "ShowOsd", "true" },
+            new[] { "ShowProfileAlerts", "true" },
             new[] { "LinkMicToOutput", "true" },
             new[] { "WidgetX", "" },
             new[] { "WidgetY", "" },
